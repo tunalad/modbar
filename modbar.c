@@ -16,6 +16,7 @@
 typedef struct {
         char    *(*func)(void);
         int     interval;
+        char    *signal;
 } Module;
 
 #include "config.h"
@@ -47,7 +48,7 @@ refreshsb(void)
                 if (modstatus[i][0] == '\0')
                         continue;
                 strcat(status, modstatus[i]);
-                if (SEPARATOR[0] != '\0' && i < modnum-1 && modstatus[i+1][0] != '\0') {
+                if (SEPARATOR[0] != '\0' && i < modnum-1 && modstatus[i][0] != '\0') {
                         strcat(status, SEPARATOR);
                 }
         }
@@ -128,6 +129,16 @@ npipe(void *tid) {
                                 buffer[i++] = c;
                 }
                 buffer[i] = '\0';
+
+                if (buffer[0] == '!') {
+                        for (int i = 0; i < modnum; i++) {
+                                if (modules[i].signal && strcmp(modules[i].signal, buffer) == 0) {
+                                        if (modrebuild(i))
+                                                refreshsb();
+                                        break;
+                                }
+                        }
+                }
         }
 
         fclose(fp);

@@ -2,17 +2,17 @@
 
 /* Define your modules here */
 static const Module modules[] = {
-    /*      FUNCTION                INTERVAL    */
-    {       newsboat_script,        10      },
-    {       mail_script,            10      },
-    {       tmux_sessions,          1       },
-    {       ncs,                    1       },
-    {       datetime,               1       },
-    {       volume_script,          1       },
-    {       battery_script,         10      },
-    {       cpu_script,             10      },
-    {       kb_script,              1       },
-    {       net_script,             5       },
+    /*      FUNCTION                INTERVAL    SIGNAL      */
+    {       newsboat_script,        10,         "!newsboat" },
+    {       mail_script,            10,         "!mail"     },
+    {       tmux_sessions,          1,          NULL        },
+    {       ncs,                    1,          NULL        },
+    {       datetime,               1,          NULL        },
+    {       volume_script,          60,         "!volume"   }, // interval JIC audio breaks
+    {       battery_script,         10,         NULL        },
+    {       cpu_script,             10,         NULL        },
+    {       kb_script,              0,          "!kb"       },
+    {       net_script,             5,          NULL        },
 };
 
 /* Redefine if you want to place modbar's named pipe somewhere else */

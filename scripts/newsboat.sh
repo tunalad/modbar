@@ -9,4 +9,6 @@ articles=$(sqlite3 $CACHE_PATH "SELECT COUNT(*) FROM rss_item WHERE unread = TRU
 
 if [ "$articles" -gt "0" ]; then
     echo -n " $articles"
+else
+    echo ""
 fi

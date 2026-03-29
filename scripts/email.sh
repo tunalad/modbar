@@ -12,4 +12,8 @@ for mail in "$MAILBOXES"/*; do
     mail_sum=$((mail_sum + count))
 done
 
-[ "$mail_sum" != 0 ] && echo " $mail_sum"
+if [ "$mail_sum" != 0 ]; then
+    echo " $mail_sum"
+else
+    echo ""
+fi
