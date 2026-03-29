@@ -1,0 +1,34 @@
+#!/bin/sh
+
+! ls /sys/class/power_supply/BAT* 2>&1 >/dev/null &&
+    exit 0
+
+for battery in /sys/class/power_supply/BAT?; do
+    capacity=$(cat $battery/capacity)
+    icon=""
+    case $(cat $battery/status) in
+    "Full")
+        icon=""
+        ;;
+    "Charging")
+        icon=""
+        ;;
+    "Discharging" | "Not charging")
+        if [ $capacity -gt 90 ]; then
+            icon=""
+        elif [ $capacity -gt 65 ]; then
+            icon=""
+        elif [ $capacity -gt 35 ]; then
+            icon=""
+        elif [ $capacity -gt 10 ]; then
+            icon=""
+        else
+            icon=""
+        fi
+        ;;
+    "Unknown")
+        icon=""
+        ;;
+    esac
+    printf "%s%s%%" "$icon" "$capacity"
+done

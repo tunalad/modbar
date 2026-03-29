@@ -1,3 +1,52 @@
+/* =================== */
+/* ===== helpers ===== */
+/* =================== */
+static char *run_script(const char *script, char *buf) {
+    char cmd[4096];
+    snprintf(cmd, sizeof(cmd), "sh -s << 'EOF'\n%s\nEOF", script);
+    FILE *f = popen(cmd, "r");
+    if (!f) return buf;
+    fgets(buf, BUFSIZE, f);
+    pclose(f);
+    buf[strcspn(buf, "\n")] = '\0';
+    return buf;
+}
+
+static char *generate_module(const char *script_path, char *buf) {
+    FILE *f = popen(script_path, "r");
+    if (!f) return buf;
+    fgets(buf, BUFSIZE, f);
+    pclose(f);
+    buf[strcspn(buf, "\n")] = '\0';
+    return buf;
+}
+
+/* =================== */
+/* ===== modules ===== */
+/* =================== */
+
+/* ===== datetime ===== */
+char *datetime(void) {
+    static char buf[BUFSIZE];
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+
+    const char *icons[] = {
+        "󱑖", "󱑋", "󱑌", "󱑍", "󱑎", "󱑏",
+        "󱑐", "󱑑", "󱑒", "󱑓", "󱑔", "󱑕"
+    };
+
+    int h = tm->tm_hour % 12;
+    strftime(buf, BUFSIZE, "%d %b %Y|", tm);
+    strncat(buf, icons[h], BUFSIZE - strlen(buf) - 1);
+    char tmp[16];
+    strftime(tmp, sizeof(tmp), "%R:%S", tm);
+    strncat(buf, tmp, BUFSIZE - strlen(buf) - 1);
+
+    return buf;
+}
+
+/* ===== ncs ===== */
 extern Display *display;
 
 char *ncs(void) {
@@ -8,12 +57,65 @@ char *ncs(void) {
     XGetKeyboardControl(display, &state);
 
     unsigned long led = state.led_mask;
-    int any = 0;
 
-    if (led & 1) { strcat(buf, "[CAP]"); any = 1; }
-    if (led & 2) { strcat(buf, "[NUM]"); any = 1; }
-    if (led & 4) { strcat(buf, "[SCR]"); any = 1; }
-    if (any)     { strcat(buf, "|"); }
+    if (led & 1) { strcat(buf, "[CAP]"); }
+    if (led & 2) { strcat(buf, "[NUM]"); }
+    if (led & 4) { strcat(buf, "[SCR]"); }
 
     return buf;
+}
+
+/* ===== tmux_sessions ===== */
+char *tmux_sessions(void) {
+    static char buf[BUFSIZE];
+    run_script(
+        "#!/bin/sh\n"
+        "sessions=$(tmux list-sessions 2>/dev/null | wc -l)\n"
+        "[ \"$sessions\" -gt 0 ] && printf \" %d\" \"$sessions\"\n",
+        buf
+    );
+    return buf;
+}
+
+/* ===== volume ===== */
+char *battery_script(void) {
+    static char buf[BUFSIZE];
+    return generate_module("scripts/mb-battery", buf);
+}
+
+/* ===== kblayout ===== */
+char *kb_script(void) {
+    static char buf[BUFSIZE];
+    return generate_module("scripts/kblayout.sh", buf);
+}
+
+/* ===== cpu ===== */
+char *cpu_script(void) {
+    static char buf[BUFSIZE];
+    return generate_module("scripts/cpu.sh", buf);
+}
+
+/* ===== volume ===== */
+char *volume_script(void) {
+    static char buf[BUFSIZE];
+    return generate_module("scripts/volume.sh", buf);
+}
+
+
+/* ===== net ===== */
+char *net_script(void) {
+    static char buf[BUFSIZE];
+    return generate_module("scripts/net.sh", buf);
+}
+
+/* ===== mail ===== */
+char *mail_script(void) {
+    static char buf[BUFSIZE];
+    return generate_module("scripts/email.sh", buf);
+}
+
+/* ===== newsboat ===== */
+char *newsboat_script(void) {
+    static char buf[BUFSIZE];
+    return generate_module("scripts/newsboat.sh", buf);
 }

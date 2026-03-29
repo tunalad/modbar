@@ -15,7 +15,6 @@
 
 typedef struct {
         char    *(*func)(void);
-        char    *command;
         int     interval;
 } Module;
 
@@ -33,21 +32,11 @@ static char     **modstatus = NULL;
 pthread_mutex_t mutex0, mutex1;
 
 /* Function declarations */
-static void execute(char *, char *);
 static void refreshsb(void);
 static void initsb(void);
-static void matchcmd(char *);
 static bool modrebuild(int);
 static void *schedule(void *);
 static void *npipe(void *);
-
-void
-execute(char *command, char *output)
-{
-        FILE *fp = popen(command, "r");
-        fgets(output, BUFSIZE, fp);
-        pclose(fp);
-}
 
 void
 refreshsb(void)
@@ -55,8 +44,10 @@ refreshsb(void)
         pthread_mutex_lock(&mutex0);
         memset(status, 0, strlen(status));
         for (int i = 0; i < modnum; i++) {
+                if (modstatus[i][0] == '\0')
+                        continue;
                 strcat(status, modstatus[i]);
-                if(SEPARATOR[0] != '\0' && i < modnum-1) {
+                if (SEPARATOR[0] != '\0' && i < modnum-1 && modstatus[i+1][0] != '\0') {
                         strcat(status, SEPARATOR);
                 }
         }
@@ -75,8 +66,6 @@ modrebuild(int i)
 
         if (modules[i].func)
                 strncpy(output, modules[i].func(), BUFSIZE-1);
-        else
-                execute(modules[i].command, output);
 
         bool found = false;
         if (strcmp(output, modstatus[i])) {
@@ -97,18 +86,6 @@ initsb(void)
         for (int i = 0; i < modnum; i++)
                 modrebuild(i);
         refreshsb();
-}
-
-void
-matchcmd(char *command)
-{
-        for (int i = 0; i < modnum; i++) {
-                if (modules[i].command && !strcmp(command, modules[i].command)) {
-                        if(modrebuild(i)) {
-                                refreshsb();
-                        }
-                }
-        }
 }
 
 void *
@@ -151,7 +128,6 @@ npipe(void *tid) {
                                 buffer[i++] = c;
                 }
                 buffer[i] = '\0';
-                matchcmd(buffer);
         }
 
         fclose(fp);

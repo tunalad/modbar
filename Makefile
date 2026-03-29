@@ -3,6 +3,7 @@ include config.mk
 all: modbar
 
 modbar: modbar.c config.h
+	chmod +x ./scripts/*
 	${CC} -o modbar modbar.c ${CFLAGS} ${LDFLAGS}
 
 clean:
