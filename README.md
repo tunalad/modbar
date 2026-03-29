@@ -1,4 +1,4 @@
-# modbar
+# tunalad's EPIC modbar fork
 Modbar is a modular status bar for dwm.
 
 ![preview](img/preview.png)
@@ -8,17 +8,11 @@ Each module is updated independently of the others based on a given time interva
 
 ## Configuration
 The program is configured via the config.h file. Modules are added to the modbar by editing the `modules` array.
-- `COMMAND`: is a command modbar should run in order to get the output.
+- `FUNCTION`: this is a function that modbar runs and uses it's output. Can be an actual C function or a script that gets embedded in the binary itself (see `modules.h`).
 - `INTERVAL`: defines how often a module should be refreshed (in seconds). `0` means no refresh.
+- `SIGNAL`: defines the signal name that can interact with the pipe (eg.: `echo "!volume" > /var/run/user/1000/modbar.pipe`)
 
 The `PIPE_PATH` directive tells the program where to create a named pipe that will be used to communicate with external programs. Modbar listens to the pipe in order to update a module on demand.
-
-To update a module outside the schedule simply pass the command name into the pipe, eg.: `echo "mb-volume" > /var/run/user/1000/modbar.pipe`
-
-## Modules
-Modules used in the preview are available for download here: https://dobrowolski.dev/download/modbar-shell-modules.tar.gz
-
-Each module must reside inside the system PATH, or an absolute path has to be used.
 
 ## Installation
 Run `sudo make install` to install modbar.

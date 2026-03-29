@@ -4,6 +4,9 @@
 #include "scripts.h"
 
 static char *run_script(const char *script, char *buf) {
+    /*
+     *  This functions lets you run write shell scripts directly here. Check out the `tmux_sessions`
+     * */
     char cmd[4096];
     snprintf(cmd, sizeof(cmd), "sh -s << 'EOF'\n%s\nEOF", script);
     FILE *f = popen(cmd, "r");
@@ -15,6 +18,11 @@ static char *run_script(const char *script, char *buf) {
 }
 
 static char *generate_module(const char *script, char *buf) {
+    /*
+     *  This functions lets you embed scripts found in the `scripts` directory.
+     *  Makefile generates `scripts.h` file, which contains all the scripts found in the folder.
+     *  Check out ` battery_script`
+     * */
     char cmd[4096];
     snprintf(cmd, sizeof(cmd), "sh -s << 'EOF'\n%s\nEOF", script);
     FILE *f = popen(cmd, "r");
@@ -84,7 +92,7 @@ char *tmux_sessions(void) {
 /* ===== volume ===== */
 char *battery_script(void) {
     static char buf[BUFSIZE];
-    return generate_module(mb_battery, buf);
+    return generate_module(mb_battery, buf); // scripts/mb-battery
 }
 
 /* ===== kblayout ===== */
