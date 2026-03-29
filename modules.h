@@ -1,6 +1,8 @@
 /* =================== */
 /* ===== helpers ===== */
 /* =================== */
+#include "scripts.h"
+
 static char *run_script(const char *script, char *buf) {
     char cmd[4096];
     snprintf(cmd, sizeof(cmd), "sh -s << 'EOF'\n%s\nEOF", script);
@@ -12,8 +14,10 @@ static char *run_script(const char *script, char *buf) {
     return buf;
 }
 
-static char *generate_module(const char *script_path, char *buf) {
-    FILE *f = popen(script_path, "r");
+static char *generate_module(const char *script, char *buf) {
+    char cmd[4096];
+    snprintf(cmd, sizeof(cmd), "sh -s << 'EOF'\n%s\nEOF", script);
+    FILE *f = popen(cmd, "r");
     if (!f) return buf;
     fgets(buf, BUFSIZE, f);
     pclose(f);
@@ -80,42 +84,42 @@ char *tmux_sessions(void) {
 /* ===== volume ===== */
 char *battery_script(void) {
     static char buf[BUFSIZE];
-    return generate_module("scripts/mb-battery", buf);
+    return generate_module(mb_battery, buf);
 }
 
 /* ===== kblayout ===== */
 char *kb_script(void) {
     static char buf[BUFSIZE];
-    return generate_module("scripts/kblayout.sh", buf);
+    return generate_module(kblayout, buf);
 }
 
 /* ===== cpu ===== */
 char *cpu_script(void) {
     static char buf[BUFSIZE];
-    return generate_module("scripts/cpu.sh", buf);
+    return generate_module(cpu, buf);
 }
 
 /* ===== volume ===== */
 char *volume_script(void) {
     static char buf[BUFSIZE];
-    return generate_module("scripts/volume.sh", buf);
+    return generate_module(volume, buf);
 }
 
 
 /* ===== net ===== */
 char *net_script(void) {
     static char buf[BUFSIZE];
-    return generate_module("scripts/net.sh", buf);
+    return generate_module(net, buf);
 }
 
 /* ===== mail ===== */
 char *mail_script(void) {
     static char buf[BUFSIZE];
-    return generate_module("scripts/email.sh", buf);
+    return generate_module(email, buf);
 }
 
 /* ===== newsboat ===== */
 char *newsboat_script(void) {
     static char buf[BUFSIZE];
-    return generate_module("scripts/newsboat.sh", buf);
+    return generate_module(newsboat, buf);
 }
