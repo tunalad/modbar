@@ -14,6 +14,7 @@
 #define MAX_CMD_LEN 32
 
 typedef struct {
+        char    *(*func)(void);
         char    *command;
         int     interval;
 } Module;
@@ -21,7 +22,7 @@ typedef struct {
 #include "config.h"
 
 /* Variables */
-static Display *display = NULL;
+Display *display = NULL;
 
 static int      modnum;
 static int      *interval = NULL;
@@ -71,7 +72,11 @@ modrebuild(int i)
         pthread_mutex_lock(&mutex1);
 
         char *output = calloc(BUFSIZE, sizeof(char));
-        execute(modules[i].command, output);
+
+        if (modules[i].func)
+                strncpy(output, modules[i].func(), BUFSIZE-1);
+        else
+                execute(modules[i].command, output);
 
         bool found = false;
         if (strcmp(output, modstatus[i])) {
@@ -98,7 +103,7 @@ void
 matchcmd(char *command)
 {
         for (int i = 0; i < modnum; i++) {
-                if (!strcmp(command, modules[i].command)) {
+                if (modules[i].command && !strcmp(command, modules[i].command)) {
                         if(modrebuild(i)) {
                                 refreshsb();
                         }
