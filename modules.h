@@ -3,32 +3,27 @@
 /* =================== */
 #include "scripts.h"
 
-static char *run_script(const char *script, char *buf) {
-    /*
-     *  This functions lets you run write shell scripts directly here. Check out the `tmux_sessions`
-     * */
-    char cmd[4096];
-    snprintf(cmd, sizeof(cmd), "sh -s << 'EOF'\n%s\nEOF", script);
-    FILE *f = popen(cmd, "r");
-    if (!f) return buf;
-    fgets(buf, BUFSIZE, f);
-    pclose(f);
-    buf[strcspn(buf, "\n")] = '\0';
-    return buf;
-}
-
 static char *generate_module(const char *script, char *buf) {
     /*
-     *  This functions lets you embed scripts found in the `scripts` directory.
-     *  Makefile generates `scripts.h` file, which contains all the scripts found in the folder.
-     *  Check out ` battery_script`
+     *  This function lets you embed scripts as modules.
+     *  Makefile generates `scripts.h` file, which contains all the scripts.
+     *  You can embed them either by adding the script inside the `scripts` directory (see `battery_script`)
+     *  Or by directly writing the script in a function (see `tmux_sessions`)
      * */
-    char cmd[4096];
-    snprintf(cmd, sizeof(cmd), "sh -s << 'EOF'\n%s\nEOF", script);
+    char tmpfile[] = "/tmp/modbar_XXXXXX";
+    int fd = mkstemp(tmpfile);
+    if (fd < 0) return buf;
+    write(fd, script, strlen(script));
+    close(fd);
+
+    char cmd[256];
+    snprintf(cmd, sizeof(cmd), "sh %s", tmpfile);
     FILE *f = popen(cmd, "r");
-    if (!f) return buf;
+    if (!f) { unlink(tmpfile); return buf; }
     fgets(buf, BUFSIZE, f);
     pclose(f);
+    unlink(tmpfile);
+
     buf[strcspn(buf, "\n")] = '\0';
     return buf;
 }
@@ -80,13 +75,11 @@ char *ncs(void) {
 /* ===== tmux_sessions ===== */
 char *tmux_sessions(void) {
     static char buf[BUFSIZE];
-    run_script(
+    static const char script[] =
         "#!/bin/sh\n"
         "sessions=$(tmux list-sessions 2>/dev/null | wc -l)\n"
-        "[ \"$sessions\" -gt 0 ] && printf \" %d\" \"$sessions\"\n",
-        buf
-    );
-    return buf;
+        "[ \"$sessions\" -gt 0 ] && printf \" %d\" \"$sessions\"\n";
+    return generate_module(script, buf);
 }
 
 /* ===== volume ===== */
